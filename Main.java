@@ -1,8 +1,6 @@
 import database.Database;
 import dec.Spoluprace;
 import dec.Zamestnanec;
-
-import java.util.Collection;
 import java.util.Scanner;
 
 
@@ -12,7 +10,7 @@ public class Main {
     private static Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) {
-        db.nactiData();  // načtení existujících dat (zatím prázdné)
+        db.nactiZeSouboru(DATA_FILE);
 
         boolean konec = false;
         while (!konec) {
@@ -31,11 +29,11 @@ public class Main {
                 case "j": db.nactiZeSouboru(DATA_FILE); break;     
                 case "k": db.ulozDoSql(); break;                   
                 case "l": db.nactiZeSql(); break;
-                case "m": vypisVsechnyZamestnance(); break; 
+                //case "m": vypisVsechnyZamestnance(); break;
                 case "x":
                     konec = true;
                     db.ulozDoSouboru(DATA_FILE);
-                    db.ulozDoSql(); // záloha před koncem (pokud bude implementováno)
+                    db.ulozDoSql();
                     System.out.println("Program ukončen.");
                     break;
                 default: System.out.println("Neplatná volba.");
@@ -61,7 +59,7 @@ public class Main {
         System.out.println("j) Načíst zaměstnance ze souboru");
         System.out.println("k) Uložit vše do SQL databáze");
         System.out.println("l) Načíst vše z SQL databáze");
-        System.out.println("m) Výpis všech zaměstnanců");
+        //System.out.println("m) Výpis všech zaměstnanců");
         System.out.println("x) Konec\n");
         System.out.print("Zadejte volbu: ");
 
@@ -168,7 +166,7 @@ public class Main {
         db.spustDovednost(id);
     }
 
-    private static void vypisVsechnyZamestnance() {
+   /*  private static void vypisVsechnyZamestnance() {
     Collection<Zamestnanec> vsichni = db.getAllZamestnanci();
     if (vsichni.isEmpty()) {
         System.out.println("Žádní zaměstnanci.");
@@ -177,6 +175,5 @@ public class Main {
         for (Zamestnanec z : vsichni) {
             System.out.println(z);
         }
-    }
-}
+    } */
 }
