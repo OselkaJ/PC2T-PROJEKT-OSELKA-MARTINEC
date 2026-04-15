@@ -11,14 +11,13 @@ public class Datovyanalytik implements Specializace, Serializable {
     public void vykonatDovednost(Zamestnanec zamestnanec, Database db) {
         System.out.println("Dovednost Datového analytika – hledání nejvíce společných spolupracovníků.");
 
-        Map<Integer, Zamestnanec> vsichni = db.getZamestnanciMap(); // získáme mapu všech zaměstnanců
+        Map<Integer, Zamestnanec> vsichni = db.getZamestnanciMap(); 
         Set<Integer> spolupracovniciZam = zamestnanec.getSpolupracovnici().keySet();
         if (spolupracovniciZam.isEmpty()) {
             System.out.println("Tento zaměstnanec nemá žádné spolupracovníky.");
             return;
         }
 
-        // Pro každého spolupracovníka spočítáme počet společných spolupracovníků
         Map<Integer, Integer> spolecniCount = new HashMap<>();
         for (int idKolegy : spolupracovniciZam) {
             Zamestnanec kolega = vsichni.get(idKolegy);
@@ -33,7 +32,6 @@ public class Datovyanalytik implements Specializace, Serializable {
             spolecniCount.put(idKolegy, pocetSpolecnych);
         }
 
-        // Najdeme maximum
         int max = -1;
         List<Integer> nejlepsiKolegove = new ArrayList<>();
         for (Map.Entry<Integer, Integer> entry : spolecniCount.entrySet()) {

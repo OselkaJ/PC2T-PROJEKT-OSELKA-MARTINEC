@@ -1,6 +1,5 @@
 package dec;
 
-//import database.Database;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +23,6 @@ public class Zamestnanec implements Serializable {
         this.spolupracovnici = new HashMap<>();
     }
 
-    // Gettery a settery
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -42,7 +40,6 @@ public class Zamestnanec implements Serializable {
 
     public Map<Integer, Spoluprace> getSpolupracovnici() { return spolupracovnici; }
 
-    // Pomocné metody pro spolupráci
     public void pridejSpolupraci(int idKolegy, Spoluprace uroven) {
         spolupracovnici.put(idKolegy, uroven);
     }

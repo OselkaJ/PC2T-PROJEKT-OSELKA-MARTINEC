@@ -17,7 +17,6 @@ public class Bezpecnostnispecialista implements Specializace, Serializable {
             return;
         }
 
-        // Průměrná kvalita spolupráce: převedeme enum na číselnou hodnotu (1=špatná, 2=průměrná, 3=dobrá)
         double sumKvalita = 0;
         for (Spoluprace u : zamestnanec.getSpolupracovnici().values()) {
             switch (u) {
@@ -28,8 +27,6 @@ public class Bezpecnostnispecialista implements Specializace, Serializable {
         }
         double prumernaKvalita = sumKvalita / pocetSpolupracovniku;
 
-        // Vlastní algoritmus: riziko = počet spolupracovníků * (4 - průměrná kvalita)
-        // Čím vyšší riziko, tím horší.
         double riziko = pocetSpolupracovniku * (4 - prumernaKvalita);
         System.out.printf("Rizikové skóre: %.2f (počet spolupracovníků: %d, průměrná kvalita: %.2f)%n",
                 riziko, pocetSpolupracovniku, prumernaKvalita);

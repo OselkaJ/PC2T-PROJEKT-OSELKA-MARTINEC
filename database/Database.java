@@ -1,7 +1,6 @@
 package database;
 
 import dec.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -19,7 +18,6 @@ public class Database {
         nextId = 1;
     }
 
-    // ---------- Přidání zaměstnance ----------
     public void pridejZamestnance(String jmeno, String prijmeni, int rokNarozeni, String skupina) {
         Specializace spec;
         if ("analytik".equalsIgnoreCase(skupina)) {
@@ -35,54 +33,52 @@ public class Database {
         System.out.println("Zaměstnanec přidán s ID: " + novy.getId());
     }
 
-    // ---------- Odebrání zaměstnance ----------
     public void odeberZamestnance(int id) {
-        if (!zamestnanci.containsKey(id)) {
-            System.out.println("Zaměstnanec s ID " + id + " neexistuje.");
-            return;
-        }
+    if (zamestnanci.containsKey(id)) {
         zamestnanci.remove(id);
-        // Odstranit ze seznamů spolupracovníků ostatních
         for (Zamestnanec z : zamestnanci.values()) {
             z.odstranSpolupraci(id);
         }
         System.out.println("Zaměstnanec s ID " + id + " byl odebrán.");
+    } else {
+        System.out.println("Zaměstnanec s ID " + id + " neexistuje.");
     }
+}
 
-    // ---------- Vyhledání podle ID ----------
     public Zamestnanec najdiPodleId(int id) {
         return zamestnanci.get(id);
     }
 
-    // ---------- Přidání spolupráce (jednostranné) ----------
     public void pridejSpolupraci(int idZam, int idKolegy, Spoluprace uroven) {
-        Zamestnanec zam = zamestnanci.get(idZam);
-        Zamestnanec kolega = zamestnanci.get(idKolegy);
-        if (zam == null) {
-            System.out.println("Zaměstnanec s ID " + idZam + " neexistuje.");
-            return;
-        }
-        if (kolega == null) {
-            System.out.println("Zaměstnanec s ID " + idKolegy + " neexistuje.");
-            return;
-        }
-        zam.pridejSpolupraci(idKolegy, uroven);
-        System.out.println("Spolupráce přidána.");
+    if (idZam == idKolegy) {
+        System.out.println("Chyba: Zaměstnanec nemůže spolupracovat sám se sebou.");
+        return;
     }
 
-    // ---------- Všechny zaměstnanci ----------
+    Zamestnanec zam = zamestnanci.get(idZam);
+    Zamestnanec kolega = zamestnanci.get(idKolegy);
+
+    if (zam != null && kolega != null) {
+        zam.pridejSpolupraci(idKolegy, uroven);
+        kolega.pridejSpolupraci(idZam, uroven); 
+        
+        System.out.println("Spolupráce mezi " + zam.getPrijmeni() + " a " + kolega.getPrijmeni() + " byla uložena.");
+    } else {
+        System.out.println("Chyba: Jeden nebo oba zaměstnanci neexistují (ID: " + idZam + ", " + idKolegy + ").");
+    }
+
+}
+
     public Collection<Zamestnanec> getAllZamestnanci() {
         return zamestnanci.values();
     }
 
-    // ---------- Abecední seznam podle příjmení ----------
     public List<Zamestnanec> getZamestnanciAbecedne() {
         List<Zamestnanec> seznam = new ArrayList<>(zamestnanci.values());
         seznam.sort(Comparator.comparing(Zamestnanec::getPrijmeni).thenComparing(Zamestnanec::getJmeno));
         return seznam;
     }
 
-    // ---------- Výpis podle skupin (abecedně) ----------
     public void vypisAbecednePodleSkupin() {
         List<Zamestnanec> analytici = new ArrayList<>();
         List<Zamestnanec> specialisti = new ArrayList<>();
@@ -108,7 +104,6 @@ public class Database {
         }
     }
 
-    // ---------- Počet zaměstnanců ve skupinách ----------
     public void vypisPocetVeSkupinach() {
         int pocetAnalytiku = 0;
         int pocetSpecialistu = 0;
@@ -123,9 +118,7 @@ public class Database {
         System.out.println("Počet specialistů: " + pocetSpecialistu);
     }
 
-    // ---------- Statistiky ----------
     public void vypisStatistiky() {
-        // Zaměstnanec s nejvíce vazbami
         Zamestnanec nejviceVazeb = null;
         int maxVazeb = -1;
         for (Zamestnanec z : zamestnanci.values()) {
@@ -142,7 +135,6 @@ public class Database {
             System.out.println("Žádní zaměstnanci.");
         }
 
-        // Převažující kvalita spolupráce (napříč všemi vazbami)
         int spatna = 0, prumerna = 0, dobra = 0;
         for (Zamestnanec z : zamestnanci.values()) {
             for (Spoluprace u : z.getSpolupracovnici().values()) {
@@ -165,7 +157,6 @@ public class Database {
         }
     }
 
-    // ---------- Spuštění dovednosti ----------
     public void spustDovednost(int id) {
         Zamestnanec z = zamestnanci.get(id);
         if (z == null) {
@@ -175,23 +166,15 @@ public class Database {
         z.getSpecializace().vykonatDovednost(z, this);
     }
 
-    public void ulozDoSouboru() {
-        System.out.println("Ulozeno Do Souboru.");
-    }
-
-    public void nactiZeSouboru() {
-        System.out.println("Načítání ze souboru zatím není implementováno.");
-    }
-
     public void ulozDoSql() {
         System.out.println("Ukládání do SQL zatím není implementováno.");
+        // dodelat SQL asi přes MySQL
     }
 
     public void nactiZeSql() {
         System.out.println("Načítání z SQL zatím není implementováno.");
     }
 
-    // Getter a setter pro serializaci (pro pozdější použití)
     public Map<Integer, Zamestnanec> getZamestnanciMap() {
         return zamestnanci;
     }
@@ -215,7 +198,7 @@ public class Database {
             System.out.println("Data byla uložena do souboru: " + soubor);
         } catch (IOException e) {
             System.out.println("Chyba při ukládání do souboru: " + e.getMessage());
-        }
+        } // otestovat funkčnost čtení a zapisování ze souboru viz níže
     }
 
     @SuppressWarnings("unchecked")
@@ -239,9 +222,7 @@ public class Database {
         }
     }
 
-    // Upravená metoda nactiData() – bude volat načtení ze souboru při startu
     public void nactiData() {
-        nactiZeSouboru("data.ser");  // pokusíme se načíst výchozí soubor
+        nactiZeSouboru("techfirmdata.txt");
     }
-
 }
