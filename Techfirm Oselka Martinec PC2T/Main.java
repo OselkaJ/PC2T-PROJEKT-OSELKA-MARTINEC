@@ -43,28 +43,31 @@ public class Main {
     }
 
     private static void vypisMenu() {
-        System.out.println("\n-------------- TECHFIRM -------------");
-        System.out.println("- By Oselka Jakub & Robert Martinec -");
-        System.out.println("-------------------------------------\n");
+    String R = "\u001B[0m"; 
+    String B = "\u001B[1m";  
 
-        System.out.println("a) Přidat zaměstnance");
-        System.out.println("b) Přidat spolupráci");
-        System.out.println("c) Odebrat zaměstnance");
-        System.out.println("d) Vyhledat zaměstnance podle ID");
-        System.out.println("e) Spustit dovednost zaměstnance");
-        System.out.println("f) Abecední výpis zaměstnanců ve skupinách");
-        System.out.println("g) Statistiky (převažující kvalita, nejvíce vazeb)");
-        System.out.println("h) Počet zaměstnanců ve skupinách");
-        System.out.println("i) Uložit zaměstnance do souboru");
-        System.out.println("j) Načíst zaměstnance ze souboru");
-        System.out.println("k) Uložit vše do SQL databáze");
-        System.out.println("l) Načíst vše z SQL databáze");
-        //System.out.println("m) Výpis všech zaměstnanců");
-        System.out.println("x) Konec\n");
-        System.out.print("Zadejte volbu: ");
-
-    }
-
+    System.out.println("\n" + B + "┌──────────────────────────────────────────────────────────┐" + R);
+    System.out.println(B + "│                T E C H F I R M   2 0 2 6                 │" + R);
+    System.out.println(B + "│          By Oselka Jakub & Robert Martinec               │" + R);
+    System.out.println(B + "├──────────────────────────────────────────────────────────┤" + R);
+    System.out.println(B + "│  SPRÁVA ZAMĚSTNANCŮ                                      │" + R);
+    System.out.println(B + "│  a) Přidat zaměstnance        b) Přidat spolupráci       │" + R);
+    System.out.println(B + "│  c) Odebrat zaměstnance       d) Vyhledat podle ID       │" + R);
+    System.out.println(B + "│  e) Spustit dovednost                                    │" + R);
+    System.out.println(B + "├──────────────────────────────────────────────────────────┤" + R);
+    System.out.println(B + "│  VÝPISY A STATISTIKY                                     │" + R);
+    System.out.println(B + "│  f) Abecední seznam           g) Statistiky vazeb        │" + R);
+    System.out.println(B + "│  h) Počty ve skupinách                                   │" + R);
+    System.out.println(B + "├──────────────────────────────────────────────────────────┤" + R);
+    System.out.println(B + "│  DATA A DATABÁZE                                         │" + R);
+    System.out.println(B + "│  i) Uložit do SOUBORU         j) Načíst ze SOUBORU       │" + R);
+    System.out.println(B + "│  k) Uložit do SQL             l) Načíst z SQL            │" + R);
+    System.out.println(B + "├──────────────────────────────────────────────────────────┤" + R);
+    System.out.println(B + "│  x) UKONČIT PROGRAM                                      │" + R);
+    System.out.println(B + "└──────────────────────────────────────────────────────────┘" + R);
+    
+    System.out.print(B + " Zadejte volbu > " + R);
+}
    private static void pridejZamestnance() {
         System.out.print("Jméno: ");
         String jmeno = sc.nextLine().trim();
@@ -92,7 +95,7 @@ public class Main {
             default:
                 System.out.println("Neplatná volba.");
                 return;
-        }
+        }    
 
         try {
             db.pridejZamestnance(jmeno, prijmeni, rok, skupina);

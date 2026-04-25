@@ -1,5 +1,5 @@
 1;Jakub;Oselka;2004;specialista
-2;Robert;Martinec;2004;analytik
-3;Ane§ka;Hajkova;2000;specialista
+3;Anežka;Hajkova;2000;specialista
 4;Wilson;Losiento;2003;analytik
 5;Bourec;Morusovy;1993;analytik
+6;Robert;Martinec;2004;specialista

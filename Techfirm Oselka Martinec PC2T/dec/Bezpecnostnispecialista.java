@@ -2,33 +2,32 @@ package dec;
 
 import database.Database;
 import java.io.Serializable;
-//import java.util.*;
+import java.util.Map;
 
 public class Bezpecnostnispecialista implements Specializace, Serializable {
     private static final long serialVersionUID = 1L;
 
     @Override
     public void vykonatDovednost(Zamestnanec zamestnanec, Database db) {
-        System.out.println("Dovednost Bezpečnostního specialisty – výpočet rizikového skóre.");
-
-        int pocetSpolupracovniku = zamestnanec.getPocetSpolupracovniku();
-        if (pocetSpolupracovniku == 0) {
-            System.out.println("Zaměstnanec nemá žádné spolupracovníky, rizikové skóre = 0.");
+        System.out.println("Dovednost Bezpečnostního specialisty - výpočet rizikového skóre.");
+        
+        Map<Integer, Spoluprace> spolupracovnici = zamestnanec.getSpolupracovnici();
+        if (spolupracovnici.isEmpty()) {
+            System.out.println("Tento zaměstnanec nemá žádné spolupracovníky. Rizikové skóre: 0");
             return;
         }
 
-        double sumKvalita = 0;
-        for (Spoluprace u : zamestnanec.getSpolupracovnici().values()) {
-            switch (u) {
-                case SPATNA: sumKvalita += 1; break;
-                case PRUMERNA: sumKvalita += 2; break;
-                case DOBRA: sumKvalita += 3; break;
+        double sumaRizika = 0;
+        for (Spoluprace s : spolupracovnici.values()) {
+            switch (s) {
+                case SPATNA: sumaRizika += 5.0; break;
+                case PRUMERNA: sumaRizika += 2.0; break;
+                case DOBRA: sumaRizika += 0.5; break;
             }
         }
-        double prumernaKvalita = sumKvalita / pocetSpolupracovniku;
 
-        double riziko = pocetSpolupracovniku * (4 - prumernaKvalita);
-        System.out.printf("Rizikové skóre: %.2f (počet spolupracovníků: %d, průměrná kvalita: %.2f)%n",
-                riziko, pocetSpolupracovniku, prumernaKvalita);
+        double skore = sumaRizika / spolupracovnici.size();
+        System.out.println("Počet spolupracovníků: " + spolupracovnici.size());
+        System.out.printf("Vypočítané rizikové skóre: %.2f (vyšší číslo = vyšší riziko)\n", skore);
     }
 }

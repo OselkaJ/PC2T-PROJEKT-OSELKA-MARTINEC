@@ -9,8 +9,7 @@ public class Datovyanalytik implements Specializace, Serializable {
     
     @Override
     public void vykonatDovednost(Zamestnanec zamestnanec, Database db) {
-        System.out.println("Dovednost Datového analytika – hledání nejvíce společných spolupracovníků.");
-
+        System.out.println("Dovednost Datového analytika - hledání nejvíce společných spolupracovníků.");
         Map<Integer, Zamestnanec> vsichni = db.getZamestnanciMap(); 
         Set<Integer> spolupracovniciZam = zamestnanec.getSpolupracovnici().keySet();
         if (spolupracovniciZam.isEmpty()) {
@@ -22,8 +21,10 @@ public class Datovyanalytik implements Specializace, Serializable {
         for (int idKolegy : spolupracovniciZam) {
             Zamestnanec kolega = vsichni.get(idKolegy);
             if (kolega == null) continue;
+            
             Set<Integer> kolegoviSpolupracovnici = kolega.getSpolupracovnici().keySet();
             int pocetSpolecnych = 0;
+            
             for (int id : kolegoviSpolupracovnici) {
                 if (id != zamestnanec.getId() && spolupracovniciZam.contains(id)) {
                     pocetSpolecnych++;
@@ -39,18 +40,20 @@ public class Datovyanalytik implements Specializace, Serializable {
                 max = entry.getValue();
                 nejlepsiKolegove.clear();
                 nejlepsiKolegove.add(entry.getKey());
-            } else if (entry.getValue() == max) {
+            } else if (entry.getValue() == max && max != -1) {
                 nejlepsiKolegove.add(entry.getKey());
             }
         }
 
-        if (max == -1) {
-            System.out.println("Nelze vypočítat.");
+        if (max <= 0) {
+            System.out.println("Žádné společné vazby nenalezeny.");
         } else {
             System.out.println("Nejvíce společných spolupracovníků (počet: " + max + "):");
             for (int id : nejlepsiKolegove) {
                 Zamestnanec kolega = vsichni.get(id);
-                System.out.println("  " + kolega.getPrijmeni() + " " + kolega.getJmeno() + " (ID: " + id + ")");
+                if (kolega != null) {
+                    System.out.println("  " + kolega.getPrijmeni() + " " + kolega.getJmeno() + " (ID: " + id + ")");
+                }
             }
         }
     }

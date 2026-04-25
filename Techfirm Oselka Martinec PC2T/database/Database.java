@@ -33,15 +33,18 @@ public class Database {
     }
 
     public void odeberZamestnance(int id) {
-    if (zamestnanci.containsKey(id)) {
-        zamestnanci.remove(id);
-        for (Zamestnanec z : zamestnanci.values()) {
-            z.odstranSpolupraci(id);
-        }
-        System.out.println("Zaměstnanec s ID " + id + " byl odebrán.");
-    } else {
-        System.out.println("Zaměstnanec s ID " + id + " neexistuje.");
+    if (!zamestnanci.containsKey(id)) {
+        System.out.println("Zaměstnanec s ID " + id + " nebyl nalezen.");
+        return;
     }
+    zamestnanci.remove(id);
+    for (Zamestnanec z : zamestnanci.values()) {
+        if (z.getSpolupracovnici().containsKey(id)) {
+            z.getSpolupracovnici().remove(id);
+        }
+    }
+
+    System.out.println("Zaměstnanec s ID " + id + " byl odstraněn včetně všech vazeb.");
 }
 
     public Zamestnanec najdiPodleId(int id) {
@@ -60,7 +63,6 @@ public class Database {
     if (zam != null && kolega != null) {
         zam.pridejSpolupraci(idKolegy, uroven);
         kolega.pridejSpolupraci(idZam, uroven); 
-        
         System.out.println("Spolupráce mezi " + zam.getPrijmeni() + " a " + kolega.getPrijmeni() + " byla uložena.");
     } else {
         System.out.println("Chyba: Jeden nebo oba zaměstnanci neexistují (ID: " + idZam + ", " + idKolegy + ").");
@@ -165,17 +167,17 @@ public class Database {
         z.getSpecializace().vykonatDovednost(z, this);
     }
 
-   public void ulozDoSql() {
+public void ulozDoSql() {
     try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
-        // Vytvoření tabulek
-        conn.createStatement().execute("CREATE TABLE IF NOT EXISTS zamestnanci (" +
-                "id INT PRIMARY KEY, jmeno VARCHAR(50), prijmeni VARCHAR(50), " +
-                "rok INT, skupina VARCHAR(50))");
-        conn.createStatement().execute("CREATE TABLE IF NOT EXISTS spoluprace (" +
-                "id_zam INT, id_kolega INT, uroven VARCHAR(20))");
-
-        conn.createStatement().execute("DELETE FROM spoluprace");
-        conn.createStatement().execute("DELETE FROM zamestnanci");
+        try (Statement stmt = conn.createStatement()) {
+           stmt.execute("CREATE TABLE IF NOT EXISTS zamestnanci (" +
+                    "id INT PRIMARY KEY, jmeno VARCHAR(50), prijmeni VARCHAR(50), " +
+                    "rok INT, skupina VARCHAR(50))");
+            stmt.execute("CREATE TABLE IF NOT EXISTS spoluprace (" +
+                    "id_zam INT, id_kolega INT, uroven VARCHAR(20))");
+            stmt.execute("DELETE FROM spoluprace");
+            stmt.execute("DELETE FROM zamestnanci");
+        }
 
         PreparedStatement psZam = conn.prepareStatement("INSERT INTO zamestnanci VALUES (?, ?, ?, ?, ?)");
         PreparedStatement psSpolu = conn.prepareStatement("INSERT INTO spoluprace VALUES (?, ?, ?)");
