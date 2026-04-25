@@ -1,17 +1,16 @@
 package database;
 
 import dec.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.*;
+import java.sql.*;
 
 public class Database {
     private Map<Integer, Zamestnanec> zamestnanci;
     private int nextId;
+    private static final String URL = "jdbc:mysql://localhost:3306/techfirm?useSSL=false&serverTimezone=UTC";
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
 
     public Database() {
         zamestnanci = new HashMap<>();
@@ -166,14 +165,76 @@ public class Database {
         z.getSpecializace().vykonatDovednost(z, this);
     }
 
-    public void ulozDoSql() {
-        System.out.println("Ukládání do SQL zatím není implementováno.");
-        // dodelat SQL asi přes MySQL
-    }
+   public void ulozDoSql() {
+    try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        // Vytvoření tabulek
+        conn.createStatement().execute("CREATE TABLE IF NOT EXISTS zamestnanci (" +
+                "id INT PRIMARY KEY, jmeno VARCHAR(50), prijmeni VARCHAR(50), " +
+                "rok INT, skupina VARCHAR(50))");
+        conn.createStatement().execute("CREATE TABLE IF NOT EXISTS spoluprace (" +
+                "id_zam INT, id_kolega INT, uroven VARCHAR(20))");
 
-    public void nactiZeSql() {
-        System.out.println("Načítání z SQL zatím není implementováno.");
+        conn.createStatement().execute("DELETE FROM spoluprace");
+        conn.createStatement().execute("DELETE FROM zamestnanci");
+
+        PreparedStatement psZam = conn.prepareStatement("INSERT INTO zamestnanci VALUES (?, ?, ?, ?, ?)");
+        PreparedStatement psSpolu = conn.prepareStatement("INSERT INTO spoluprace VALUES (?, ?, ?)");
+
+        for (Zamestnanec z : zamestnanci.values()) {
+            psZam.setInt(1, z.getId());
+            psZam.setString(2, z.getJmeno());
+            psZam.setString(3, z.getPrijmeni());
+            psZam.setInt(4, z.getRokNarozeni());
+            psZam.setString(5, (z.getSpecializace() instanceof Datovyanalytik ? "analytik" : "specialista"));
+            psZam.executeUpdate();
+
+            for (Map.Entry<Integer, Spoluprace> entry : z.getSpolupracovnici().entrySet()) {
+                psSpolu.setInt(1, z.getId());
+                psSpolu.setInt(2, entry.getKey());
+                psSpolu.setString(3, entry.getValue().name());
+                psSpolu.executeUpdate();
+            }
+        }
+        System.out.println("Data byla úspěšně exportována do MySQL databáze.");
+    } catch (SQLException e) {
+        System.out.println("Chyba při ukládání do SQL: " + e.getMessage());
     }
+}
+
+   public void nactiZeSql() {
+    try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        Statement st = conn.createStatement();
+        
+        ResultSet rsZam = st.executeQuery("SELECT * FROM zamestnanci");
+        zamestnanci.clear();
+        while (rsZam.next()) {
+            int id = rsZam.getInt("id");
+            String jmeno = rsZam.getString("jmeno");
+            String prijmeni = rsZam.getString("prijmeni");
+            int rok = rsZam.getInt("rok");
+            String skupina = rsZam.getString("skupina");
+
+            Specializace spec = skupina.equals("analytik") ? new Datovyanalytik() : new Bezpecnostnispecialista();
+            Zamestnanec z = new Zamestnanec(id, jmeno, prijmeni, rok, spec);
+            zamestnanci.put(id, z);
+        }
+
+        ResultSet rsSpolu = st.executeQuery("SELECT * FROM spoluprace");
+        while (rsSpolu.next()) {
+            int id1 = rsSpolu.getInt("id_zam");
+            int id2 = rsSpolu.getInt("id_kolega");
+            Spoluprace uroven = Spoluprace.valueOf(rsSpolu.getString("uroven"));
+            
+            if (zamestnanci.containsKey(id1)) {
+                zamestnanci.get(id1).pridejSpolupraci(id2, uroven);
+            }
+        }
+        aktualizujNextId();
+        System.out.println("Data byla úspěšně načtena z MySQL databáze.");
+    } catch (SQLException e) {
+        System.out.println("SQL databáze není dostupná nebo je prázdná.");
+    }
+}
 
     public Map<Integer, Zamestnanec> getZamestnanciMap() {
         return zamestnanci;
@@ -193,34 +254,43 @@ public class Database {
     }
 
     public void ulozDoSouboru(String soubor) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(soubor))) {
-            oos.writeObject(zamestnanci);
-            System.out.println("Data byla uložena do souboru: " + soubor);
-        } catch (IOException e) {
-            System.out.println("Chyba při ukládání do souboru: " + e.getMessage());
-        } // otestovat funkčnost čtení a zapisování ze souboru viz níže
+    try (PrintWriter writer = new PrintWriter(new FileWriter(soubor))) {
+        for (Zamestnanec z : zamestnanci.values()) {
+            String skupina = (z.getSpecializace() instanceof Datovyanalytik ? "analytik" : "specialista");
+            writer.println(z.getId() + ";" + z.getJmeno() + ";" + z.getPrijmeni() + ";" + z.getRokNarozeni() + ";" + skupina);
+        }
+        System.out.println("Data byla uložena do textového souboru: " + soubor);
+    } catch (IOException e) {
+        System.out.println("Chyba při ukládání do souboru: " + e.getMessage());
     }
-
-    @SuppressWarnings("unchecked")
+}
     public void nactiZeSouboru(String soubor) {
-        File file = new File(soubor);
-        if (!file.exists()) {
-            System.out.println("Soubor neexistuje: " + soubor);
-            return;
+    File file = new File(soubor);
+    if (!file.exists()) return;
+
+    try (Scanner scanner = new Scanner(file)) {
+        zamestnanci.clear();
+        while (scanner.hasNextLine()) {
+            String radek = scanner.nextLine();
+            if (radek.isEmpty()) continue;
+            
+            String[] casti = radek.split(";");
+            int id = Integer.parseInt(casti[0]);
+            String jmeno = casti[1];
+            String prijmeni = casti[2];
+            int rok = Integer.parseInt(casti[3]);
+            String skupina = casti[4];
+
+            Specializace spec = skupina.equals("analytik") ? new Datovyanalytik() : new Bezpecnostnispecialista();
+            Zamestnanec z = new Zamestnanec(id, jmeno, prijmeni, rok, spec);
+            zamestnanci.put(id, z);
         }
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            Object obj = ois.readObject();
-            if (obj instanceof Map) {
-                zamestnanci = (Map<Integer, Zamestnanec>) obj;
-                aktualizujNextId();
-                System.out.println("Data byla načtena ze souboru: " + soubor);
-            } else {
-                System.out.println("Soubor neobsahuje platná data.");
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Chyba při načítání ze souboru: " + e.getMessage());
-        }
+        aktualizujNextId();
+        System.out.println("Data byla načtena z textového souboru.");
+    } catch (Exception e) {
+        System.out.println("Chyba při čtení textového souboru: " + e.getMessage());
     }
+}
 
     public void nactiData() {
         nactiZeSouboru("techfirmdata.txt");
