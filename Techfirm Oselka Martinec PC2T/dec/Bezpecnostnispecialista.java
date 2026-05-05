@@ -1,10 +1,9 @@
 package dec;
 
 import database.Database;
-import java.io.Serializable;
 import java.util.Map;
 
-public class Bezpecnostnispecialista implements Specializace, Serializable {
+public class Bezpecnostnispecialista extends Specializace{
     private static final long serialVersionUID = 1L;
 
     @Override

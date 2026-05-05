@@ -2,9 +2,8 @@ package dec;
 
 import database.Database;
 import java.util.*;
-import java.io.Serializable;
 
-public class Datovyanalytik implements Specializace, Serializable {
+public class Datovyanalytik extends Specializace{
     private static final long serialVersionUID = 1L;
     
     @Override
